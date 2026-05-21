@@ -1,72 +1,74 @@
-
-const User = require("./model/User");
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const dns = require('dns');
-const bcrypt= require('bcrypt');
+const userRouter = require('./routes/userRouter');
+const jwt = require("jsonwebtoken");
+const connectDb = require("./config/db");
+const User = require("./model/User");
+const bcrypt = require("bcrypt");
+require('dotenv').config()
+
+
 dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 app.use(express.json());
-app.get("/", (req, res) => {
-    res.send("hi");
-});
+app.use(userRouter);
 
 
 
+const db = require("./config/db");
 
-mongoose.connect("mongodb+srv://dileepkumaryegireddi6_db_user:dd21@cluster0.214rzt0.mongodb.net/?appName=Cluster0")
-.then(() => {
-    console.log("MongoDB connected");
-})
-.catch((err) => {
-    console.log(err);
-});
+connectDb();
 
+const verifytoken =(req,res,next)=>{
 
+    const token = req.headers.authorization;
+    if(!token){
+        return res.send("token missing");
 
-app.get("/about", (req, res) => {
-    res.send("about page");
-});
-
-app.post("/students/add",async(req,res)=>{
-try{
-
-const user = new User(req.body);
-
-await user.save();
-
-res.send(user);
- 
-}catch(err){
-res.send(err)
-}
-})
-app.get("/students",async(req,res)=>{
-try{
-
-    const user = await User.find();
-
-    res.send(user);
-
-}catch(err){
-    console.log(err);
-    res.status(500).send("Error");
-}
-})
-app.get("/students/:id",async(req,res)=>{
+    }
 
     try{
-   
+        jwt.verify(token,"secretkey");
+       next()
+    }catch(err){
 
-        const user = await User.findById(req.params.id);
-       res.send(user);
+        console.log("invalid token")
+
+    }
+}
 
 
+
+
+
+app.get("/students", async(req, res) => {
+    try{
+
+        const user = await User.find();
+
+        res.send(user);
 
     }catch(err){
-    console.log(err)
-}
+        console.groupCollapsed(err);
+    }
+   
+});
+
+app.get("/student/:id", async(req, res)=>{
+    try{
+
+        const user= await User.findById(req.params.id);
+        res.send(user);
+
+    }catch(err){
+        console.log(err)
+
+    }
 })
+
+
 app.put("/students/update/:id",async(req,res)=>{
   
      try{
@@ -86,20 +88,69 @@ app.put("/students/update/:id",async(req,res)=>{
 
 })
 
-app.delete("/students/:id",async(req,res)=>{
 
+
+app.post("/register", async(req, res)=>{
     try{
-   
+        const {name,email,password} =req.body;
+        const userExists = await User.findOne({email})
 
-        const user = await User.findByIdAndDelete(req.params.id);
-       res.send("user deleted");
+      if(userExists){
+        return res.end("user already in db");
+      }
+
+      const hashpassword = await bcrypt.hash(password,13);
+      console.log("hashpassword",hashpassword)
 
 
+      const user = new User({
+        name,
+        email,
+        password: hashpassword
+      })
+
+      await user.save();
+
+      res.send("User Registered Successfully");
 
     }catch(err){
-    console.log(err)
-}
+        console.log(err);
+
+    }
 })
+app.post("/login", async(req,res)=>{
+    try{
+
+        const {email,password} = req.body;
+
+        const user = await User.findOne({email});
+        if (!user){
+            return res.end("user not found");
+        }
+
+        const ismatch = await bcrypt.compare(password,user.password);
+
+        if(!ismatch){
+            return res.end("invalid pswrd");
+        }
+
+        const token = jwt.sign(
+            {id:user._id},
+            "secretkey",
+            {expiresIn:"1h"}
+        )
+        res.send({
+            message:"login successfull",
+            token
+        })
+
+    }catch(err){
+     console.log(err);
+    }
+})
+
+
+
 
 
 app.listen(4000, () => {
