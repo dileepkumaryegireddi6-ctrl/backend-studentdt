@@ -1,5 +1,5 @@
 const Product = require("../model/Product");
-const ProductController = require('../controller/ProductController');
+const ProductController = require('./productControllers');
 const axios = require("axios");
 // CREATE PRODUCT
 

@@ -9,7 +9,7 @@ const {
   getSingleProduct,
   updateProduct,
   deleteProduct,
-} = require("../controller/ProductController");
+} = require("../controller/productControllers");
 
 // GET ALL PRODUCTS
 router.get("/", getProducts);
