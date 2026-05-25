@@ -9,7 +9,7 @@ require("dotenv").config();
 
 const connectDb = require("./config/db");
 
-const userRouter = require("./routes/userRouter");
+const userRouter = require("./routes/productRouter");
 
 const app = express();
 
