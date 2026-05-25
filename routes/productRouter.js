@@ -6,15 +6,16 @@ const {
   getProducts,
   getProductById,
   createProduct,
+  getSingleProduct,
   updateProduct,
   deleteProduct,
-} = require("../controller/userController");
+} = require("../controller/ProductController");
 
 // GET ALL PRODUCTS
 router.get("/", getProducts);
 
 // GET SINGLE PRODUCT
-router.get("/:id", getProductById);
+router.get("/:id", getSingleProduct);
 
 // CREATE PRODUCT
 router.post("/", createProduct);
