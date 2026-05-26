@@ -20,6 +20,9 @@ const userSchema = new mongoose.Schema({
 
     storage: {
         type: String
+    },
+    image:{
+        type:String
     }
 
 });
